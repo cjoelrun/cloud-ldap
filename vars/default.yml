@@ -1,0 +1,8 @@
+rax_flavor: performance1-1
+rax_image: 5b0d5891-f80c-412a-9b73-cc996de9d719
+rax_networks:
+  - public
+  - private
+rax_region: IAD
+  
+  

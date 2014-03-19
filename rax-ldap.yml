@@ -1,0 +1,41 @@
+---
+- name: Create instance
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+    - vars/default.yml
+  tasks:
+    - name: Server create request
+      local_action:
+        module: rax
+        credentials: rax_creds
+        name: ldap
+        flavor: "{{ rax_flavor }}"
+        image: "{{ rax_image }}"
+        disk_config: manual
+        networks: "{{ rax_networks }}"
+        region: "{{ rax_region }}"
+        state: present
+        wait: yes
+      register: rax
+
+    - name: Add servers to ldap host group
+      local_action:
+        module: add_host
+        hostname: "{{ item.name }}"
+        ansible_ssh_host: "{{ item.rax_accessipv4 }}"
+        ansible_ssh_pass: "{{ item.rax_adminpass }}"
+        ansible_ssh_user: root
+        groupname: ldap
+      with_items: rax.instances
+      when: rax.action == 'create'
+
+    - name: Wait few seconds before connection
+      wait_for: port=22 delay=20
+
+- name: Install ldap
+  hosts: ldap
+
+  roles:
+    - bennojoy.openldap_server
